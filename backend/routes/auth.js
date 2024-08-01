@@ -4,10 +4,9 @@ const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
-// In-memory user storage (for now)
-let users = [];
+const User = require("../models/user");
 
-console.log("here");
+const { users } = require("../data");
 
 //registration route
 router.post("/register", async (req, res) => {
@@ -22,14 +21,14 @@ router.post("/register", async (req, res) => {
 
   // check if user already exist
   if (users.some((user) => user.username === username)) {
-    return res.status(400).json({ message: "User already exist" });
+    return res.status(400).json({ message: "User already exists" });
   }
 
   //hash the password
   const hashedPassword = await bcrypt.hash(password, 10);
 
   //store user
-  const newUser = { username, password: hashedPassword };
+  const newUser = new User(username, hashedPassword);
   users.push(newUser);
 
   res.status(201).json({ message: "User registered successfully!" });
@@ -63,7 +62,7 @@ router.post("/login", async (req, res) => {
     expiresIn: "1h",
   });
 
-  res.json(token);
+  res.json({ token });
 });
 
 //Delete the user
@@ -85,6 +84,7 @@ router.delete("/delete", async (req, res) => {
   return res.status(200).json({ message: "User deleted successfully!" });
 });
 
+// List Users Route
 router.get("/users", async (req, res) => {
   res.json(users);
 });
